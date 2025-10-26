@@ -23,8 +23,6 @@ export function useMarketCreator(client: DepredictClient | null, isInitialized: 
     isVerified: false,
   })
 
-  console.log('market creator status', status)
-
   useEffect(() => {
     const checkMarketCreator = async () => {
       setStatus(prev => ({ ...prev, isChecking: true }))

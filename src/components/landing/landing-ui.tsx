@@ -8,12 +8,12 @@ export default function PredictionMarketLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/20 text-white">
       {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-30">
+      {/* <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-30">
         <div className="absolute top-20 left-20 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
         <div className="absolute top-40 right-32 w-1 h-1 bg-green-400 rounded-full animate-pulse delay-75"></div>
         <div className="absolute bottom-32 left-1/4 w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse delay-150"></div>
         <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-emerald-400 rounded-full animate-pulse delay-300"></div>
-      </div>
+      </div> */}
 
       {/* Markets Section */}
       <MarketsSection />

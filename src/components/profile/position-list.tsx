@@ -18,19 +18,16 @@ export function PositionsList() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
   
   // Use the hook to get real position data
-  const { positions, loading, error, refetch } = usePositionDetails()
-  const { client } = useShortx()
+  const { positions, loading, error, removePositionOptimistic } = usePositionDetails()
   const { account } = useSolana()
   const { burnNft } = useBurnNft()
-  const { claimAndBurn, isProcessing } = useClaimAndBurn()
+  const { claimAndBurn } = useClaimAndBurn()
 
   // Replace handleClaim to use atomic claim+burn
   const handleClaim = async (assetId: string, marketId: number) => {
     try {
       await claimAndBurn(assetId, marketId)
-      
-      // Refresh positions after successful claim and burn
-      setTimeout(() => refetch(), 2000)
+      removePositionOptimistic(assetId)
     } catch (err) {
       console.error('Claim error:', err)
       // Error is already handled in the hook with toast
@@ -47,9 +44,7 @@ export function PositionsList() {
     try {
       // Use the burn hook
       await burnNft(assetId, process.env.NEXT_PUBLIC_CORE_COLLECTION_ID)
-      
-      // Refresh positions after burning
-      setTimeout(() => refetch(), 2000)
+      removePositionOptimistic(assetId)
     } catch (err) {
       // Error is already handled in the hook with toast
       console.error('Burn error:', err)

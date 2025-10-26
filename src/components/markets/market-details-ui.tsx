@@ -83,7 +83,7 @@ export default function MarketDetailsPage() {
     }
 
     fetchMarket()
-  }, [marketId, isInitialized, client, markets])
+  }, [marketId, isInitialized, client])
 
   // Fetch total bets
   useEffect(() => {
@@ -106,7 +106,7 @@ export default function MarketDetailsPage() {
     }
 
     fetchTotalBets()
-  }, [marketId, getAllPositionPagesForMarket, isInitialized])
+  }, [marketId, isInitialized])
 
   // Calculate probabilities and prices from liquidity
   const getMarketStats = () => {
@@ -293,8 +293,6 @@ export default function MarketDetailsPage() {
 
       toast.success('Bet placed successfully!', { id: 'place-bet' })
 
-      // Clear bet amount
-      setBetAmount('')
       
       // OPTIMISTIC UPDATES - Update UI immediately
       const amountInMicroUnits = amount * 1e6 // Convert to micro units

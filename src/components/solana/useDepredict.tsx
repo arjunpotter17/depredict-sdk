@@ -180,8 +180,6 @@ export const ShortxProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [connection, client, depredictError])
 
-  console.log('depredictError', depredictError)
-
   //fetch markets on load
   useEffect(() => {
     // Only fetch markets if market creator exists and is verified

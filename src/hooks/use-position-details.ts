@@ -6,6 +6,14 @@ import { PublicKey } from '@solana/web3.js'
 import { useUserPositions } from './use-user-positions'
 import { MarketStates, WinningDirection } from '@endcorp/depredict'
 
+export interface UsePositionDetailsReturn {
+    positions: PositionDetail[]
+    loading: boolean
+    error: Error | null
+    refetch: () => Promise<void>
+    removePositionOptimistic: (assetId: string) => void
+  }
+
 interface PositionDetail {
   id: string
   assetId: string
@@ -25,6 +33,10 @@ export function usePositionDetails() {
   const [positions, setPositions] = useState<PositionDetail[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+
+  const removePositionOptimistic = (assetId: string) => {
+    setPositions((prev) => prev.filter((pos) => pos.assetId !== assetId))
+  }
 
   const fetchPositionDetails = async () => {
     if (!client || parsedAssets.length === 0) {
@@ -88,6 +100,10 @@ export function usePositionDetails() {
           const total = yesLiq + noLiq
           const probability = total > 0 ? Math.round((yesLiq / total) * 100) : 50
 
+          const removePositionOptimistic = (assetId: string) => {
+            setPositions((prev) => prev.filter((pos) => pos.assetId !== assetId))
+          }
+          
           return {
             id: parsedAsset.assetId,
             assetId: parsedAsset.assetId,
@@ -131,5 +147,6 @@ export function usePositionDetails() {
     loading: loading || assetsLoading,
     error,
     refetch: fetchPositionDetails,
+    removePositionOptimistic,
   }
 }
