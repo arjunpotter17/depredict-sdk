@@ -87,9 +87,7 @@ interface ShortxContextType {
   ) => Promise<VersionedTransaction | null>
   resolveMarket: (args: {
     marketId: number
-    winningDirection: { yes: object } | { no: object } | { draw: object } | { none: object }
-    state: MarketStates
-    oraclePubkey: PublicKey
+    resolutionValue: 10 | 11
     payer: PublicKey
   }) => Promise<VersionedTransaction | null>
   closeMarket: (marketId: number, payer: PublicKey) => Promise<TransactionInstruction[] | null>
@@ -125,10 +123,10 @@ type PositionPageInfo = {
 
 const ShortxContext = createContext<ShortxContextType | undefined>(undefined)
 
-export const ShortxProvider = ({ children }: { children: ReactNode }) => {
+export const DepredictProvider = ({ children }: { children: ReactNode }) => {
   const connection = useMemo(
-    () => new Connection('https://api.devnet.solana.com'),
-    [] // Empty dependency array means it only creates once
+    () => new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT!),
+    []
   )
   const [client, setClient] = useState<DepredictClient | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -137,7 +135,6 @@ export const ShortxProvider = ({ children }: { children: ReactNode }) => {
   const [depredictError, setDepredictError] = useState<DepredictError | null>(null)
   const [refreshCount, setRefreshCount] = useState(0)
   const marketCreatorStatus = useMarketCreator(client, isInitialized);
-//   const [marketCreatorPubkey, setMarketCreatorPubkey] = useState<PublicKey | null>(null)
   const [recentTrades, setRecentTrades] = useState<Position[]>([])
   const [marketEvents, setMarketEvents] = useState<
     {

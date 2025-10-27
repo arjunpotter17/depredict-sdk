@@ -27,10 +27,13 @@ export function PositionsList() {
   const handleClaim = async (assetId: string, marketId: number) => {
     try {
       await claimAndBurn(assetId, marketId)
+      
+      // OPTIMISTIC UPDATE - Remove position immediately
       removePositionOptimistic(assetId)
+      
+      toast.success('Position claimed successfully!')
     } catch (err) {
       console.error('Claim error:', err)
-      // Error is already handled in the hook with toast
     }
   }
 

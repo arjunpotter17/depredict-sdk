@@ -17,16 +17,28 @@ export function MarketCreatorStats({ marketCreatorPda }: MarketCreatorStatsProps
   console.log('Market creator PDA:', marketCreatorPda)
 
   const stats = useMemo(() => {
-    const activeMarkets = markets.filter(m => 
-      m.marketState === MarketStates.ACTIVE || 
-      m.marketState?.toString().toLowerCase().includes('trading')
-    )
+    const now = Math.floor(Date.now() / 1000) // Current time in seconds
     
-    const resolvingMarkets = markets.filter(m => 
-      m.marketState === MarketStates.RESOLVING ||
-      m.marketState?.toString().toLowerCase().includes('resolving') ||
-      m.marketState?.toString().toLowerCase().includes('observing')
-    )
+    const activeMarkets = markets.filter(m => {
+      const state = m.marketState?.toString().toLowerCase()
+      const isActive = state?.includes('active') || state?.includes('trading')
+      
+      // Only count as active if betting window is still open
+      const bettingStart = m.bettingStartTime ? Number(m.bettingStartTime) : 0
+      const marketStart = Number(m.marketStart)
+      const isBettingOpen = now >= bettingStart && now < marketStart
+      
+      return isActive && isBettingOpen
+    })
+    
+    const needsResolution = markets.filter(m => {
+      const state = m.marketState?.toString().toLowerCase()
+      const isNotResolved = !state?.includes('resolved')
+      const marketEnd = Number(m.marketEnd)
+      const isPastEndTime = marketEnd > 0 && now >= marketEnd
+      
+      return isNotResolved && isPastEndTime
+    })
     
     const resolvedMarkets = markets.filter(m => 
       m.marketState === MarketStates.RESOLVED ||
@@ -38,7 +50,7 @@ export function MarketCreatorStats({ marketCreatorPda }: MarketCreatorStatsProps
     return {
       total: markets.length,
       active: activeMarkets.length,
-      resolving: resolvingMarkets.length,
+      resolving: needsResolution.length,
       resolved: resolvedMarkets.length,
       volume: totalVolume,
     }

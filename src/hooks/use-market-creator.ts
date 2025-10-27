@@ -59,15 +59,12 @@ export function useMarketCreator(client: DepredictClient | null, isInitialized: 
             publicKey: publicKey.toBase58(),
           }))
 
-          console.log('All market creators found:', accounts)
 
           // Find the market creator matching our expected PDA
           const ourMarketCreator = accounts.find(({ publicKey }) => publicKey === adminPubkey.toBase58())
 
           if (ourMarketCreator) {
             const verified = (ourMarketCreator.account as any).verified || false
-            console.log('Market creator found on-chain:', ourMarketCreator.publicKey)
-            console.log('Verified:', verified)
             
             setStatus({
               exists: true,

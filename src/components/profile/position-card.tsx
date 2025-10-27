@@ -13,6 +13,7 @@ interface Position {
   amount: number
   probability: number
   status: 'active' | 'won' | 'lost' | 'pending'
+  resolvedDirection?: 'yes' | 'no' | 'draw' | 'none' | null // Add this
   timestamp: string
 }
 
@@ -67,7 +68,7 @@ export function PositionCard({ position, onClaim, onBurn }: PositionCardProps) {
 
   const handleClaim = async () => {
     if (!position.assetId || !position.marketId || !onClaim) return
-    
+
     setIsProcessing(true)
     try {
       await onClaim(position.assetId, position.marketId)
@@ -80,7 +81,7 @@ export function PositionCard({ position, onClaim, onBurn }: PositionCardProps) {
 
   const handleBurn = async () => {
     if (!position.assetId || !onBurn) return
-    
+
     setIsProcessing(true)
     try {
       await onBurn(position.assetId)
@@ -99,12 +100,14 @@ export function PositionCard({ position, onClaim, onBurn }: PositionCardProps) {
           <p className="text-sm font-semibold text-white line-clamp-2 flex-1 group-hover:text-purple-400 transition-colors">
             {position.question}
           </p>
-          <div className={cn(
-            'flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-semibold whitespace-nowrap',
-            statusConfig.bgColor,
-            statusConfig.borderColor,
-            statusConfig.color
-          )}>
+          <div
+            className={cn(
+              'flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-semibold whitespace-nowrap',
+              statusConfig.bgColor,
+              statusConfig.borderColor,
+              statusConfig.color,
+            )}
+          >
             <StatusIcon className="w-3 h-3" />
             {statusConfig.label}
           </div>
@@ -113,15 +116,36 @@ export function PositionCard({ position, onClaim, onBurn }: PositionCardProps) {
         {/* Bet Direction */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">Your bet:</span>
-          <span className={cn(
-            'px-2 py-0.5 rounded text-xs font-bold',
-            position.direction === 'yes' 
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-              : 'bg-red-500/20 text-red-400 border border-red-500/30'
-          )}>
+          <span
+            className={cn(
+              'px-2 py-0.5 rounded text-xs font-bold',
+              position.direction === 'yes'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'bg-red-500/20 text-red-400 border border-red-500/30',
+            )}
+          >
             {position.direction.toUpperCase()}
           </span>
         </div>
+
+        {/* Market Resolved Direction - Show only if market is resolved */}
+        {position.resolvedDirection && (position.status === 'won' || position.status === 'lost') && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Market resolved:</span>
+            <span
+              className={cn(
+                'px-2 py-0.5 rounded text-xs font-bold',
+                position.resolvedDirection === 'yes'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : position.resolvedDirection === 'no'
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+              )}
+            >
+              {position.resolvedDirection === 'draw' ? 'DRAW' : position.resolvedDirection.toUpperCase()}
+            </span>
+          </div>
+        )}
 
         {/* Stats Row */}
         <div className="flex items-center justify-between text-xs">
@@ -130,10 +154,7 @@ export function PositionCard({ position, onClaim, onBurn }: PositionCardProps) {
               <span className="text-slate-400">Amount: </span>
               <span className="text-white font-semibold">${position.amount.toFixed(2)}</span>
             </div>
-            <div>
-              <span className="text-slate-400">Odds: </span>
-              <span className="text-white font-semibold">{position.probability}%</span>
-            </div>
+           
           </div>
           <span className="text-slate-500">{position.timestamp}</span>
         </div>

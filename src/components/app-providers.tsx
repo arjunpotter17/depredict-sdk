@@ -12,7 +12,7 @@ import '@solana/wallet-adapter-react-ui/styles.css'
 // Your existing providers
 import { ReactQueryProvider } from './react-query-provider'
 import { ThemeProvider } from './theme-provider'
-import { ShortxProvider } from './solana/useDepredict'
+import { DepredictProvider } from './solana/useDepredict'
 import { Toaster } from 'sonner'
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -36,10 +36,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
         <WalletModalProvider>
           <ThemeProvider attribute="class" defaultTheme="dark">
             <ReactQueryProvider>
-              <ShortxProvider>
+              <DepredictProvider>
                 <Toaster position="top-right" richColors />
                 {children}
-              </ShortxProvider>
+              </DepredictProvider>
             </ReactQueryProvider>
           </ThemeProvider>
         </WalletModalProvider>

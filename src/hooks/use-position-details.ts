@@ -7,12 +7,12 @@ import { useUserPositions } from './use-user-positions'
 import { MarketStates, WinningDirection } from '@endcorp/depredict'
 
 export interface UsePositionDetailsReturn {
-    positions: PositionDetail[]
-    loading: boolean
-    error: Error | null
-    refetch: () => Promise<void>
-    removePositionOptimistic: (assetId: string) => void
-  }
+  positions: PositionDetail[]
+  loading: boolean
+  error: Error | null
+  refetch: () => Promise<void>
+  removePositionOptimistic: (assetId: string) => void
+}
 
 interface PositionDetail {
   id: string
@@ -22,6 +22,7 @@ interface PositionDetail {
   amount: number // in USDC (already converted from base units)
   direction: 'yes' | 'no'
   status: 'active' | 'won' | 'lost' | 'pending'
+  resolvedDirection: 'yes' | 'no' | 'draw' | 'none' | null // Add this
   question?: string
   probability?: number
   timestamp: string
@@ -82,11 +83,25 @@ export function usePositionDetails() {
           const amount = parseFloat(position.amount?.toString() || '0') / 1e6
 
           // Determine status based on market state and winning direction
+          // Determine status based on market state and winning direction
           let status: 'active' | 'won' | 'lost' | 'pending' = 'active'
+          let resolvedDirection: 'yes' | 'no' | 'draw' | 'none' | null = null
           if (market) {
             if (market.marketState === MarketStates.RESOLVED) {
               // Check if user won or lost
-              status = market.winningDirection === WinningDirection.YES ? 'won' : 'lost'
+              if (market.winningDirection === WinningDirection.YES) {
+                status = direction === 'yes' ? 'won' : 'lost'
+                resolvedDirection = 'yes'
+              } else if (market.winningDirection === WinningDirection.NO) {
+                status = direction === 'no' ? 'won' : 'lost'
+                resolvedDirection = 'no'
+              } else if (market.winningDirection === WinningDirection.DRAW) {
+                status = 'won' // Draw means everyone wins
+                resolvedDirection = 'draw'
+              } else {
+                status = 'lost'
+                resolvedDirection = 'none'
+              }
             } else if (market.marketState === MarketStates.ACTIVE) {
               status = 'active'
             } else {
@@ -100,10 +115,6 @@ export function usePositionDetails() {
           const total = yesLiq + noLiq
           const probability = total > 0 ? Math.round((yesLiq / total) * 100) : 50
 
-          const removePositionOptimistic = (assetId: string) => {
-            setPositions((prev) => prev.filter((pos) => pos.assetId !== assetId))
-          }
-          
           return {
             id: parsedAsset.assetId,
             assetId: parsedAsset.assetId,
@@ -112,9 +123,10 @@ export function usePositionDetails() {
             amount,
             direction,
             status,
+            resolvedDirection, // Add this
             question: market?.question || `Market #${parsedAsset.marketId}`,
             probability,
-            timestamp: new Date().toISOString(), // You can get this from positionAccount if available
+            timestamp: new Date().toISOString(),
           } as PositionDetail
         } catch (err) {
           console.error(`Failed to fetch position for asset ${parsedAsset.assetId}:`, err)
@@ -140,7 +152,7 @@ export function usePositionDetails() {
     } else if (parsedAssets.length === 0) {
       setPositions([])
     }
-  }, [parsedAssets, assetsLoading, client, markets])
+  }, [parsedAssets, assetsLoading, client, markets.length])
 
   return {
     positions,

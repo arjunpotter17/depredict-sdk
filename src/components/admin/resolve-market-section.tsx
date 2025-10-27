@@ -73,18 +73,11 @@ export function ResolveMarketSection() {
     try {
       toast.loading('Preparing market resolution...', { id: 'resolve-market' })
 
-      // Convert winning direction to program format
-      const directionArg = 
-        winningDirection === 'yes' ? { yes: {} } :
-        winningDirection === 'no' ? { no: {} } :
-        winningDirection === 'draw' ? { draw: {} } :
-        { none: {} }
+
 
       const resolveArgs = {
         marketId: selectedMarket,
-        winningDirection: directionArg,
-        state: MarketStates.RESOLVED,
-        oraclePubkey: wallet.publicKey,
+        resolutionValue: (winningDirection === 'yes' ? 10 : 11) as 10 | 11,
         payer: wallet.publicKey,
       }
 
@@ -306,35 +299,7 @@ export function ResolveMarketSection() {
                 winningDirection === 'no' ? 'text-red-400' : 'text-slate-500'
               }`} />
               <p className="font-semibold text-center">NO</p>
-            </button>
-
-            <button
-              onClick={() => setWinningDirection('draw')}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                winningDirection === 'draw'
-                  ? 'bg-yellow-500/20 border-yellow-500'
-                  : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600'
-              }`}
-            >
-              <AlertCircle className={`w-6 h-6 mx-auto mb-2 ${
-                winningDirection === 'draw' ? 'text-yellow-400' : 'text-slate-500'
-              }`} />
-              <p className="font-semibold text-center">DRAW</p>
-            </button>
-
-            <button
-              onClick={() => setWinningDirection('none')}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                winningDirection === 'none'
-                  ? 'bg-slate-500/20 border-slate-500'
-                  : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600'
-              }`}
-            >
-              <XCircle className={`w-6 h-6 mx-auto mb-2 ${
-                winningDirection === 'none' ? 'text-slate-400' : 'text-slate-500'
-              }`} />
-              <p className="font-semibold text-center">NONE</p>
-            </button>
+            </button>           
           </div>
 
           <button
