@@ -42,6 +42,8 @@ export default function MarketDetailsPage() {
   const [market, setMarket] = useState<Market | null>(null)
   const [loadingMarket, setLoadingMarket] = useState(true)
 
+  console.log('market', market)
+
   // Format bet amount input to max 2 decimal places
   const handleBetAmountChange = (value: string) => {
     // Allow empty string

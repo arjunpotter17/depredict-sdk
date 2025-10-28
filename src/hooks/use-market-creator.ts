@@ -28,7 +28,7 @@ export function useMarketCreator(client: DepredictClient | null, isInitialized: 
       setStatus(prev => ({ ...prev, isChecking: true }))
 
       try {
-        // Step 1: Check if env variable exists
+        // Check if env variable exists
         const adminKey = process.env.NEXT_PUBLIC_CREATOR_PUBLIC_ADMIN_KEY
 
         if (!adminKey) {
@@ -44,7 +44,7 @@ export function useMarketCreator(client: DepredictClient | null, isInitialized: 
           return
         }
 
-        // Step 2: If env exists, check if market creator exists on-chain
+        // If env exists, check if market creator exists on-chain
         if (!client || !isInitialized) {
           return // Wait for SDK to initialize
         }
@@ -58,7 +58,6 @@ export function useMarketCreator(client: DepredictClient | null, isInitialized: 
             account,
             publicKey: publicKey.toBase58(),
           }))
-
 
           // Find the market creator matching our expected PDA
           const ourMarketCreator = accounts.find(({ publicKey }) => publicKey === adminPubkey.toBase58())

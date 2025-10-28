@@ -20,7 +20,7 @@ export function CreateMarketCreatorFlow({ onCreated }: CreateMarketCreatorFlowPr
   const { createCollection } = useCreateCoreCollection()
   const { createTree } = useCreateMerkleTree()
 
-  const [step, setStep] = useState<'ready' | 'creating' | 'verifying' | 'complete'>('ready')
+  const [step, setStep] = useState<'ready' | 'creating' | 'creating-collection' | 'creating-tree' | 'verifying' | 'complete'>('ready')
   const [isProcessing, setIsProcessing] = useState(false)
   const [marketCreatorPda, setMarketCreatorPda] = useState<string>('')
   const [coreCollection, setCoreCollection] = useState<string>('')
@@ -93,8 +93,8 @@ export function CreateMarketCreatorFlow({ onCreated }: CreateMarketCreatorFlowPr
       // Wait a bit for account to settle
       await new Promise(resolve => setTimeout(resolve, 2000))
 
-      // Step 2: Verify (Create Collection + Tree + Verify)
-      setStep('verifying')
+      // Step 2: Create Collection
+      setStep('creating-collection')
       toast.loading('Step 2: Creating core collection...', { id: 'mc-flow' })
 
       const collectionResult = await createCollection(wallet.publicKey.toBase58(), pdaString)
@@ -109,6 +109,7 @@ export function CreateMarketCreatorFlow({ onCreated }: CreateMarketCreatorFlowPr
       // Wait for collection to settle
       await new Promise(resolve => setTimeout(resolve, 3000))
 
+      setStep('creating-tree')
       toast.loading('Step 3: Creating merkle tree...', { id: 'mc-flow' })
 
       const treeResult = await createTree(wallet.publicKey.toBase58(), pdaString)
@@ -123,6 +124,7 @@ export function CreateMarketCreatorFlow({ onCreated }: CreateMarketCreatorFlowPr
       // Wait for tree to settle
       await new Promise(resolve => setTimeout(resolve, 3000))
 
+      setStep('verifying')
       toast.loading('Step 4: Verifying market creator...', { id: 'mc-flow' })
 
       const verifyIxs = await verifyMarketCreator({
@@ -245,12 +247,12 @@ export function CreateMarketCreatorFlow({ onCreated }: CreateMarketCreatorFlowPr
       )}
 
       {/* Progress Card */}
-      {(step === 'creating' || step === 'verifying') && (
+      {(step === 'creating' || step === 'verifying' || step === 'creating-collection' || step === 'creating-tree') && (
         <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
           <div className="flex items-center gap-3 mb-6">
             <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
             <h2 className="text-2xl font-bold">
-              {step === 'creating' ? 'Creating Market Creator...' : 'Verifying Market Creator...'}
+              {step === 'creating' ? 'Creating Market Creator...' : step === 'creating-collection' ? 'Creating Core Collection...' : step === 'creating-tree' ? 'Creating Merkle Tree...' : 'Verifying Market Creator...'}
             </h2>
           </div>
 
