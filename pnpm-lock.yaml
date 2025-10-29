@@ -12,8 +12,8 @@ importers:
         specifier: ^0.32.1
         version: 0.32.1(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@endcorp/depredict':
-        specifier: ^0.7.2
-        version: 0.7.2(@noble/hashes@1.8.0)(@solana/web3.js@1.98.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
+        specifier: ^0.7.3
+        version: 0.7.3(@noble/hashes@1.8.0)(@solana/web3.js@1.98.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))
       '@gillsdk/react':
         specifier: ^0.6.0
         version: 0.6.0(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@tanstack/react-query@5.90.5(react@19.2.0))(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(fastestsmallesttextencoderdecoder@1.0.22)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
@@ -361,8 +361,8 @@ packages:
   '@emurgo/cardano-serialization-lib-nodejs@13.2.0':
     resolution: {integrity: sha512-Bz1zLGEqBQ0BVkqt1OgMxdBOE3BdUWUd7Ly9Ecr/aUwkA8AV1w1XzBMe4xblmJHnB1XXNlPH4SraXCvO+q0Mig==}
 
-  '@endcorp/depredict@0.7.2':
-    resolution: {integrity: sha512-0JTL3vQFC2HkX6jVlu//jm6pxApyUsUki+aAItV7kKql+sWioTNavTOO8a3FiPd8ReixObvBKzE9+w1X+w+Pbg==}
+  '@endcorp/depredict@0.7.3':
+    resolution: {integrity: sha512-PI3BwMYxYj01MULNOuFJWbT4HiLg7vOg2o2rU6bkftaGBtbzONtR1lKUfoRWgPSi4UM/e9NV/hLjoJxUKWCrlQ==}
     engines: {node: '>=16.0.0'}
 
   '@eslint-community/eslint-utils@4.9.0':
@@ -6502,7 +6502,7 @@ snapshots:
 
   '@emurgo/cardano-serialization-lib-nodejs@13.2.0': {}
 
-  '@endcorp/depredict@0.7.2(@noble/hashes@1.8.0)(@solana/web3.js@1.98.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))':
+  '@endcorp/depredict@0.7.3(@noble/hashes@1.8.0)(@solana/web3.js@1.98.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10))':
     dependencies:
       '@metaplex-foundation/digital-asset-standard-api': 2.0.0(@metaplex-foundation/umi@1.4.1)
       '@metaplex-foundation/mpl-account-compression': 0.0.1(@metaplex-foundation/umi@1.4.1)

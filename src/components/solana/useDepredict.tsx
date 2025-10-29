@@ -108,6 +108,63 @@ interface ShortxContextType {
     creatorFeeBps: number
   }) => Promise<TransactionInstruction[] | null>
   updateMerkleTree: (args: { signer: PublicKey; newTree: PublicKey }) => Promise<TransactionInstruction[] | null>
+  ensureMarketCreatorLookupTable: (args: {
+    authority: PublicKey
+    payer?: PublicKey
+    additionalAddresses?: (PublicKey | null | undefined)[]
+    existingLookupTable?: PublicKey
+  }) => Promise<{
+    lookupTableAddress: PublicKey
+    createTx?: VersionedTransaction
+    extendTxs: VersionedTransaction[]
+  } | null>
+  ensureMarketLookupTable: (args: {
+    marketId: number
+    authority: PublicKey
+    payer?: PublicKey
+    pageIndexes?: number[]
+    additionalAddresses?: (PublicKey | null | undefined)[]
+    existingLookupTable?: PublicKey
+    excludeAddresses?: (PublicKey | null | undefined)[]
+    creatorLookupTableAddress?: PublicKey
+  }) => Promise<{
+    lookupTableAddress: PublicKey
+    createTx?: VersionedTransaction
+    extendTxs: VersionedTransaction[]
+  } | null>
+  buildSettleInstructionWithProof: (args: {
+    marketId: number
+    claimer: PublicKey
+    assetId: PublicKey
+    pageIndex: number
+    slotIndex?: number | null
+    proof: {
+      root: number[] | Uint8Array
+      dataHash: number[] | Uint8Array
+      creatorHash: number[] | Uint8Array
+      nonce: number | BN
+      leafIndex: number
+      proofNodes: (string | PublicKey)[]
+    }
+  }) => Promise<{
+    instruction: TransactionInstruction
+    lookupAddresses: PublicKey[]
+    resolvedSlotIndex: number
+    resolvedPageIndex: number
+  } | null>
+  extendMarketLookupTable: (args: {
+    marketId: number
+    authority: PublicKey
+    lookupTableAddress: PublicKey
+    pageIndexes?: number[]
+    proofNodes?: (string | PublicKey)[]
+    additionalAddresses?: (PublicKey | null | undefined)[]
+    excludeAddresses?: (PublicKey | null | undefined)[]
+    creatorLookupTableAddress?: PublicKey
+  }) => Promise<{
+    lookupTableAddress: PublicKey
+    extendTxs: VersionedTransaction[]
+  } | null>
   updateMarketOptimistic: (marketId: string, updates: Partial<Market>) => void
 }
 
@@ -592,6 +649,90 @@ export const DepredictProvider = ({ children }: { children: ReactNode }) => {
       )
     )
   }
+
+  const ensureMarketCreatorLookupTable = async (args: {
+    authority: PublicKey
+    payer?: PublicKey
+    additionalAddresses?: (PublicKey | null | undefined)[]
+    existingLookupTable?: PublicKey
+  }) => {
+    if (!client) throw createShortxError(DepredictErrorType.INITIALIZATION, 'SDK not initialized')
+    try {
+      const result = await client.trade.ensureMarketCreatorLookupTable(args)
+      return result
+    } catch (err) {
+      setDepredictError(createShortxError(DepredictErrorType.MARKET_CREATOR_CREATION, 'Failed to ensure market creator lookup table', err))
+      return null
+    }
+  }
+
+  const ensureMarketLookupTable = async (args: {
+    marketId: number
+    authority: PublicKey
+    payer?: PublicKey
+    pageIndexes?: number[]
+    additionalAddresses?: (PublicKey | null | undefined)[]
+    existingLookupTable?: PublicKey
+    excludeAddresses?: (PublicKey | null | undefined)[]
+    creatorLookupTableAddress?: PublicKey
+  }) => {
+    if (!client) throw createShortxError(DepredictErrorType.INITIALIZATION, 'SDK not initialized')
+    try {
+      console.log('ensureMarketLookupTable args', args)
+      const result = await client.trade.ensureMarketLookupTable(args)
+      console.log('ensureMarketLookupTable result', result)
+      return result
+    } catch (err) {
+      console.log('ensureMarketLookupTable error', err)
+      setDepredictError(createShortxError(DepredictErrorType.MARKET_CREATION, 'Failed to ensure market lookup table', err))
+      return null
+    }
+  }
+
+  const extendMarketLookupTable = async (args: {
+    marketId: number
+    authority: PublicKey
+    lookupTableAddress: PublicKey
+    pageIndexes?: number[]
+    proofNodes?: (string | PublicKey)[]
+    additionalAddresses?: (PublicKey | null | undefined)[]
+    excludeAddresses?: (PublicKey | null | undefined)[]
+    creatorLookupTableAddress?: PublicKey
+  }) => {
+    if (!client) throw createShortxError(DepredictErrorType.INITIALIZATION, 'SDK not initialized')
+    try {
+      const result = await (client as any).trade.extendMarketLookupTable(args)
+      return result
+    } catch (err) {
+      setDepredictError(createShortxError(DepredictErrorType.MARKET_CREATION, 'Failed to extend market lookup table', err))
+      return null
+    }
+  }
+
+  const buildSettleInstructionWithProof = async (args: {
+    marketId: number
+    claimer: PublicKey
+    assetId: PublicKey
+    pageIndex: number
+    slotIndex?: number | null
+    proof: {
+      root: number[] | Uint8Array
+      dataHash: number[] | Uint8Array
+      creatorHash: number[] | Uint8Array
+      nonce: number | BN
+      leafIndex: number
+      proofNodes: (string | PublicKey)[]
+    }
+  }) => {
+    if (!client) throw createShortxError(DepredictErrorType.INITIALIZATION, 'SDK not initialized')
+    try {
+      const result = await client.trade.buildSettleInstructionWithProof(args)
+      return result
+    } catch (err) {
+      setDepredictError(createShortxError(DepredictErrorType.PAYOUT, 'Failed to build settle instruction with proof', err))
+      return null
+    }
+  }
   return (
     <ShortxContext.Provider
       value={{
@@ -618,6 +759,10 @@ export const DepredictProvider = ({ children }: { children: ReactNode }) => {
         updateMarketCreatorFeeVault,
         updateMarketCreatorFee,
         updateMerkleTree,
+        ensureMarketCreatorLookupTable,
+        ensureMarketLookupTable,
+        extendMarketLookupTable,
+        buildSettleInstructionWithProof
       }}
     >
       {children}

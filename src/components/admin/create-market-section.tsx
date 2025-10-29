@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
+import { PublicKey, VersionedTransaction } from '@solana/web3.js'
 import { useShortx } from '@/components/solana/useDepredict'
 import { toast } from 'sonner'
 import { Loader2, Calendar, DollarSign, Hash, AlertCircle } from 'lucide-react'
@@ -11,7 +11,7 @@ import { MarketType, OracleType } from '@endcorp/depredict'
 export function CreateMarketSection() {
   const wallet = useWallet()
   const { connection } = useConnection()
-  const { createMarket, client } = useShortx()
+  const { createMarket, ensureMarketLookupTable } = useShortx()
 
   const [isCreating, setIsCreating] = useState(false)
   const [formData, setFormData] = useState({
@@ -144,7 +144,127 @@ export function CreateMarketSection() {
         throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`)
       }
 
-      console.log('Market created successfully! Market ID:', marketId)
+      console.log('Market created successfully! Market ID:', marketId);
+
+       // Fetch cached creator lookup table from localStorage
+       toast.loading('Setting up market lookup table...', { id: 'create-market' })
+
+       let creatorLookupTableAddress: PublicKey | undefined
+       try {
+         const marketCreatorDetails = localStorage.getItem('marketCreatorDetails')
+         if (marketCreatorDetails) {
+           const details = JSON.parse(marketCreatorDetails)
+           if (details.lookupTableAddress) {
+             creatorLookupTableAddress = new PublicKey(details.lookupTableAddress)
+             console.log('Using creator lookup table:', details.lookupTableAddress)
+           }
+         }
+       } catch (err) {
+         console.warn('Failed to load creator lookup table from localStorage:', err)
+       }
+ 
+       // Ensure market lookup table exists
+       if (creatorLookupTableAddress) {
+         // Wait 5 seconds to allow time for the market state account creation
+         await new Promise((resolve) => setTimeout(resolve, 5000))
+         try {
+           // Retry logic for ensureMarketLookupTable in case the market account is not yet ready
+           let ensureResult = null
+           const maxRetries = 7
+           const retryDelayMs = 4000
+           let lastError: any = null
+
+           for (let attempt = 0; attempt < maxRetries; attempt++) {
+             try {
+               ensureResult = await ensureMarketLookupTable({
+                 marketId,
+                 authority: wallet.publicKey,
+                 payer: wallet.publicKey,
+                 creatorLookupTableAddress: creatorLookupTableAddress,
+                 pageIndexes: [0, 1], // Prewarm first two pages
+               })
+               if (ensureResult) {
+                 if (attempt > 0) {
+                   console.log(`Market lookup table available after ${attempt+1} attempt(s)`)
+                 }
+                 break
+               }
+               lastError = null
+               console.log(`Market lookup table not ready yet (attempt ${attempt+1}/${maxRetries})`)
+             } catch (err) {
+               lastError = err
+               console.warn(`Error ensuring market lookup table (attempt ${attempt+1}/${maxRetries}):`, err)
+             }
+             // Wait before retrying
+             await new Promise((resolve) => setTimeout(resolve, retryDelayMs))
+           }
+
+           if (!ensureResult) {
+             throw new Error(
+               `Failed to setup market lookup table after ${maxRetries} attempts` +
+               (lastError ? `: ${lastError.message || lastError}` : '')
+             )
+           }
+
+           console.log('Ensure result:', ensureResult)
+ 
+           if (ensureResult) {
+             console.log('Market lookup table address:', ensureResult.lookupTableAddress.toBase58())
+ 
+             // Collect all transactions (create + extends)
+             const txs = [
+              ensureResult.createTx,
+              ...(ensureResult.extendTxs ?? []),
+            ].filter((tx): tx is VersionedTransaction => tx !== null && tx !== undefined)
+ 
+             // Sign and send all transactions
+             if (txs.length > 0) {
+               toast.loading(`Setting up lookup table (${txs.length} transaction${txs.length > 1 ? 's' : ''})...`, { id: 'create-market' })
+ 
+               for (let i = 0; i < txs.length; i++) {
+                 const tx = txs[i]
+                 const txBlockhash = await connection.getLatestBlockhash()
+                 tx.message.recentBlockhash = txBlockhash.blockhash
+ 
+                 toast.loading(`Signing lookup table transaction (${i + 1}/${txs.length})...`, { id: 'create-market' })
+ 
+                 const signedTx = await wallet.signTransaction(tx)
+                 const txSignature = await connection.sendRawTransaction(signedTx.serialize())
+ 
+                 await connection.confirmTransaction({
+                   signature: txSignature,
+                   blockhash: txBlockhash.blockhash,
+                   lastValidBlockHeight: txBlockhash.lastValidBlockHeight,
+                 }, 'confirmed')
+ 
+                 console.log(`✅ Lookup table transaction ${i + 1}/${txs.length} confirmed:`, txSignature)
+ 
+                 // Wait between transactions
+                 if (i < txs.length - 1) {
+                   await new Promise((resolve) => setTimeout(resolve, 2000))
+                 }
+               }
+ 
+               console.log('✅ Market lookup table setup complete:', ensureResult.lookupTableAddress.toBase58())
+ 
+               // Store the lookup table address (you might want to save this to a market metadata store)
+               // For now, we'll just log it
+               const marketMetadata = {
+                 marketId,
+                 lookupTableAddress: ensureResult.lookupTableAddress.toBase58(),
+                 createdAt: new Date().toISOString(),
+               }
+
+               localStorage.setItem(`marketMetadata-${marketId}`, JSON.stringify(marketMetadata))
+               console.log('Market metadata:', marketMetadata)
+             }
+           }
+         } catch (lutError: any) {
+           console.error('Failed to setup market lookup table:', lutError)
+           // Don't throw - market was created successfully, LUT is optional optimization
+           toast.error('Market created but lookup table setup failed', { id: 'create-market' })
+         }
+       }
 
       toast.success(
         `Market created successfully! Market ID: ${marketId}`,
