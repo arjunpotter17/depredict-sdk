@@ -112,7 +112,7 @@ export function CreateMarketSection() {
         oraclePubkey: formData.oraclePubkey ? new PublicKey(formData.oraclePubkey) : wallet.publicKey, // Default to wallet if not provided
         payer: wallet.publicKey,
         oracleType: OracleType.MANUAL,
-        metadataUri: formData.metadataUri,
+        metadataUri: formData.metadataUri.length > 0 ? formData.metadataUri : "https://shortx-nft-metadata.s3.us-west-2.amazonaws.com/metadata/Sample-NFT-metadata-question-metadata-1761818107097.json",
         feeVaultAccount: wallet.publicKey,
         marketType: MarketType.FUTURE,
         ...(formData.tokenMint.trim() && { mintAddress: new PublicKey(formData.tokenMint.trim()) }),
