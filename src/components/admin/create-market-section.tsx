@@ -20,7 +20,9 @@ export function CreateMarketSection() {
     marketStart: '',
     marketEnd: '',
     oraclePubkey: '',
+    tokenMint: '',
     metadataUri: 'https://example.com/market-metadata.json',
+
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -53,6 +55,20 @@ export function CreateMarketSection() {
     return { valid: true, error: null }
   }
 
+    // Validation function for token mint
+    const validateMint = (mint: string): { valid: boolean; error: string | null } => {
+      if (!mint.trim()) {
+        return { valid: true, error: null } // Optional field
+      }
+      
+      try {
+        new PublicKey(mint)
+        return { valid: true, error: null }
+      } catch {
+        return { valid: false, error: 'Invalid token mint address' }
+      }
+    }
+
   const handleCreateMarket = async () => {
     if (!wallet.publicKey || !wallet.signTransaction) {
       toast.error('Please connect your wallet')
@@ -68,6 +84,12 @@ export function CreateMarketSection() {
     const timeValidation = validateTimes()
     if (!timeValidation.valid) {
       toast.error(timeValidation.error!)
+      return
+    }
+
+    const mintValidation = validateMint(formData.tokenMint)
+    if (!mintValidation.valid) {
+      toast.error(mintValidation.error!)
       return
     }
 
@@ -93,6 +115,7 @@ export function CreateMarketSection() {
         metadataUri: formData.metadataUri,
         feeVaultAccount: wallet.publicKey,
         marketType: MarketType.FUTURE,
+        ...(formData.tokenMint.trim() && { mintAddress: new PublicKey(formData.tokenMint.trim()) }),
       }
 
       console.log('Creating market with args:', createMarketArgs)
@@ -282,6 +305,7 @@ export function CreateMarketSection() {
         marketEnd: '',
         oraclePubkey: '',
         metadataUri: 'https://example.com/market-metadata.json',
+        tokenMint: '',
       })
 
     } catch (error: any) {
@@ -438,6 +462,27 @@ export function CreateMarketSection() {
             />
           </div>
 
+          {/* Token Mint */}
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Token Mint Address (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.tokenMint}
+              onChange={(e) => handleInputChange('tokenMint', e.target.value)}
+              placeholder="mint address of the token for this market"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm font-mono"
+            />
+            {formData.tokenMint && !validateMint(formData.tokenMint).valid && (
+              <p className="text-xs text-red-400 mt-1">Invalid token mint address</p>
+            )}
+            <p className="text-xs text-slate-500 mt-1">
+              Specify a token mint address for this market. Leave blank to use devnet USDC.
+            </p>
+          </div>
+
           {/* Create Button */}
           <button
             onClick={handleCreateMarket}
@@ -448,7 +493,8 @@ export function CreateMarketSection() {
               !formData.bettingStartTime ||
               !formData.marketStart ||
               !formData.marketEnd ||
-              validationErrors.length > 0
+              validationErrors.length > 0 ||
+              !validateMint(formData.tokenMint).valid
             }
             className="w-full py-4 rounded-xl font-semibold transition-all bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
           >
