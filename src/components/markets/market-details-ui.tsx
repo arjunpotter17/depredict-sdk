@@ -159,6 +159,24 @@ export default function MarketDetailsPage() {
     return now >= bettingStart && now < marketStart
   }
 
+  const isBettingNotStartedYet = () => {
+    if (!market || isResolved()) return false
+
+    const now = Math.floor(Date.now() / 1000)
+    const bettingStart = market.bettingStartTime ? Number(market.bettingStartTime) : 0
+
+    return now < bettingStart
+  }
+
+  const isBettingClosed = () => {
+    if (!market || isResolved()) return false
+
+    const now = Math.floor(Date.now() / 1000)
+    const marketStart = Number(market.marketStart)
+
+    return now >= marketStart
+  }
+
   const getWinningDirection = () => {
     if (!market || !market.winningDirection) return null
 
@@ -522,9 +540,17 @@ export default function MarketDetailsPage() {
           </div>
         </div>
 
-        <div className={`grid ${isResolved() ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-6`}>
+        <div className={`grid ${
+          isResolved() || !isBettingOpen() 
+            ? 'lg:grid-cols-1' 
+            : 'lg:grid-cols-3'
+        } gap-6`}>
           {/* Left Column - Odds */}
-          <div className={`${isResolved() ? 'lg:col-span-1' : 'lg:col-span-2'} space-y-6`}>
+          <div className={`${
+            isResolved() || !isBettingOpen() 
+              ? 'lg:col-span-1' 
+              : 'lg:col-span-2'
+          } space-y-6`}>
             {/* Current Odds */}
             <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
               <h2 className="text-xl font-bold mb-6">Current Odds</h2>
@@ -730,7 +756,24 @@ export default function MarketDetailsPage() {
           )}
         </div>
         {/* Market Resolved or Betting Closed Box */}
-        {!isBettingOpen() && !isResolved() && (
+        {isBettingNotStartedYet() && !isResolved() && (
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/10 border-2 border-yellow-500/20 mb-4">
+                    <Clock className="w-8 h-8 text-yellow-400" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Betting Not Open</h3>
+                  <p className="text-slate-400 mb-4">
+                    Betting will open on {formatDate(market.bettingStartTime || market.marketStart)}. Check back soon!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {isBettingClosed() && !isResolved() && (
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
