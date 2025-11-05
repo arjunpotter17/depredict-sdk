@@ -351,11 +351,13 @@ export default function MarketDetailsPage() {
 
         toast.loading('Confirming transaction...', { id: 'place-bet' })
 
+        const { blockhash: newBlockhash, lastValidBlockHeight: newLastValidBlockHeight } = await connection.getLatestBlockhash()
+
         // Wait for confirmation
         await connection.confirmTransaction({
           signature,
-          blockhash,
-          lastValidBlockHeight,
+          blockhash: newBlockhash,
+          lastValidBlockHeight: newLastValidBlockHeight,
         })
       } else {
         throw new Error('Unexpected result format from openPosition')

@@ -83,10 +83,12 @@ export function CreateMarketCreatorFlow({ onCreated }: CreateMarketCreatorFlowPr
       const signedTx = await wallet.signTransaction(transaction)
       const signature = await connection.sendRawTransaction(signedTx.serialize())
 
+      const { blockhash: newBlockhash, lastValidBlockHeight: newLastValidBlockHeight } = await connection.getLatestBlockhash()
+
       await connection.confirmTransaction({
         signature,
-        blockhash,
-        lastValidBlockHeight,
+        blockhash: newBlockhash,
+        lastValidBlockHeight: newLastValidBlockHeight ,
       })
 
       console.log('✅ Market creator created:', pdaString)

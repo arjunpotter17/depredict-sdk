@@ -153,12 +153,14 @@ export function CreateMarketSection() {
 
       toast.loading('Confirming transaction...', { id: 'create-market' })
 
+      const { blockhash: newBlockhash, lastValidBlockHeight: newLastValidBlockHeight } = await connection.getLatestBlockhash()
+
       // Confirm the transaction
       const confirmation = await connection.confirmTransaction(
         {
           signature,
-          blockhash,
-          lastValidBlockHeight,
+          blockhash: newBlockhash,
+          lastValidBlockHeight: newLastValidBlockHeight,
         },
         'confirmed'
       )

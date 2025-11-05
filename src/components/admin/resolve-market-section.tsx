@@ -112,12 +112,14 @@ export function ResolveMarketSection() {
 
       toast.loading('Confirming transaction...', { id: 'resolve-market' })
 
+      const { blockhash: newBlockhash, lastValidBlockHeight: newLastValidBlockHeight } = await connection.getLatestBlockhash()
+
       // Confirm the transaction
       const confirmation = await connection.confirmTransaction(
         {
           signature,
-          blockhash,
-          lastValidBlockHeight,
+          blockhash: newBlockhash,
+          lastValidBlockHeight: newLastValidBlockHeight,
         },
         'confirmed'
       )

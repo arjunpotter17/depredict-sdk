@@ -59,10 +59,12 @@ async function submitExtendTransaction(
       const signedExtendTx = await wallet.signTransaction(extendTx)
       const extendSignature = await connection.sendRawTransaction(signedExtendTx.serialize())
 
+      const { blockhash: newBlockhash, lastValidBlockHeight: newLastValidBlockHeight } = await connection.getLatestBlockhash()
+
       await connection.confirmTransaction({
         signature: extendSignature,
-        blockhash: txBlockhash.blockhash,
-        lastValidBlockHeight: txBlockhash.lastValidBlockHeight,
+        blockhash: newBlockhash,
+        lastValidBlockHeight: newLastValidBlockHeight,
       }, 'confirmed')
 
       return extendSignature
